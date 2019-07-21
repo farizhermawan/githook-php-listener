@@ -2,6 +2,7 @@
 require_once "vendor/autoload.php";
 
 use GitHookPhpListener\GitHookParser;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
@@ -17,7 +18,10 @@ date_default_timezone_set("Asia/Jakarta");
 
 // create a log channel
 $log = new Logger('listener');
-$log->pushHandler(new StreamHandler(LOGFILE));
+$streamHandler = new StreamHandler(LOGFILE);
+$streamHandler->setFormatter(new LineFormatter(null, null, false, true));
+
+$log->pushHandler($streamHandler);
 
 $DIR = preg_match("/\/$/", DIR) ? DIR : DIR . "/";
 
