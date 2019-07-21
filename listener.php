@@ -14,11 +14,9 @@ $DIR     = preg_match("/\/$/", DIR) ? DIR : DIR . "/";
 
 // create a log channel
 $log = new Logger('listener');
-$log->pushHandler(new StreamHandler(LOGFILE, Logger::WARNING));
+$log->pushHandler(new StreamHandler(LOGFILE));
 
-$log->info(date("d-m-Y (H:i:s)", time()));
-
-$log->info($content);
+$log->debug($json);
 
 //
 //// check if pushed branch matches branch specified in config
