@@ -1,4 +1,5 @@
 <?php
+namespace GitHookPhpListener;
 
 class PullRequest
 {

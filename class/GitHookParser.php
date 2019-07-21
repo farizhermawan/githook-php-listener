@@ -1,4 +1,5 @@
 <?php
+namespace GitHookPhpListener;
 
 class GitHookParser {
   /**
@@ -11,7 +12,7 @@ class GitHookParser {
 
   function __construct()
   {
-    $this->eventName = $_SERVER['HTTP_X_GITHUB_EVENT'];
+    $this->eventName = isset($_SERVER['HTTP_X_GITHUB_EVENT']) ? $_SERVER['HTTP_X_GITHUB_EVENT'] : null;
     $this->rawContent = file_get_contents("php://input");
     $this->rawData = json_decode($this->rawContent, true);
 

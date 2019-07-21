@@ -1,6 +1,7 @@
 <?php
 require_once "vendor/autoload.php";
 
+use GitHookPhpListener\GitHookParser;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
@@ -67,4 +68,4 @@ else if ($pullRequest->getStatus() == "closed") {
   exit();
 }
 
-echo json_encode(['message' => 'Request is not known, ignored']);
+echo json_encode(['message' => 'Unkown error, request ignored', 'pull_request' => $pullRequest]);
