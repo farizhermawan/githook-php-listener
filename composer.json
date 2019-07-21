@@ -1,13 +1,14 @@
 {
-    "name": "farizhermawan/githook-php-listener",
-    "authors": [
-        {
-            "name": "Fariz Hermawan",
-            "email": "fariz.hermawan@traveloka.com"
-        }
-    ],
-    "require": {
-        "php": "^7.2",
-        "monolog/monolog": "^1.24"
+  "name": "farizhermawan/githook-php-listener",
+  "authors": [
+    {
+      "name": "Fariz Hermawan",
+      "email": "fariz.hermawan@traveloka.com"
     }
+  ],
+  "require": {
+    "php": "^7.2",
+    "monolog/monolog": "^1.24",
+    "ext-json": "*"
+  }
 }
