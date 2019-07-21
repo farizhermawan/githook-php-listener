@@ -49,6 +49,11 @@ else if ($pullRequest->getStatus() == "closed") {
     exit();
   }
 
+  // get home directory
+  $log->info("Get home directory");
+  exec("echo ~", $output, $exit);
+  $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
+
   // change directory to the repository
   $log->info("Change directory to " . sprintf($DIR, $pullRequest->getRepository()));
   chdir(sprintf($DIR, $pullRequest->getRepository()));
