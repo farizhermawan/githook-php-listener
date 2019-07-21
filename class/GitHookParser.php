@@ -23,8 +23,8 @@ class GitHookParser {
         $this->rawData['pull_request']['title'],
         $this->rawData['action'],
         $this->rawData['pull_request']['html_url'],
-        $this->rawData['pull_request']['base']['ref'],
         $this->rawData['pull_request']['head']['ref'],
+        $this->rawData['pull_request']['base']['ref'],
         $this->rawData['pull_request']['head']['repo']['name']
       );
     }

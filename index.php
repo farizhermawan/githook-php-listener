@@ -35,7 +35,7 @@ if ($pullRequest->getStatus() == "opened") {
 }
 else if ($pullRequest->getStatus() == "closed") {
   if ($pullRequest->getBaseBranch() != BRANCH) {
-    echo json_encode(['message' => 'Branch detected is not ' . BRANCH . ', request ignored']);
+    echo json_encode(['message' => 'Branch detected is not ' . BRANCH . ', request ignored', 'pull_request' => $pullRequest]);
     exit();
   }
 
@@ -60,11 +60,7 @@ else if ($pullRequest->getStatus() == "closed") {
     exec(AFTER_PULL . " 2>&1", $output, $exit);
   }
 
-  echo json_encode([
-    'message' => $pullRequest->getRepository() . ' has been successfully deployed',
-    'changes' => $pullRequest->getTitle(),
-    'author'  => $pullRequest->getAuthor()
-  ]);
+  echo json_encode(['message' => $pullRequest->getRepository() . ' has been successfully deployed', 'pull_request' => $pullRequest]);
   exit();
 }
 
