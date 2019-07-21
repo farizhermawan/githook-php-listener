@@ -1,7 +1,7 @@
 <?php
 namespace GitHookPhpListener;
 
-class PullRequest
+class PullRequest implements \JsonSerializable
 {
   private $id;
   private $author;
@@ -98,5 +98,10 @@ class PullRequest
   public function getRepository()
   {
     return $this->repository;
+  }
+
+  public function jsonSerialize()
+  {
+    return get_object_vars($this);
   }
 }
