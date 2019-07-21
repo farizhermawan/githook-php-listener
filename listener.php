@@ -18,6 +18,7 @@ $log->pushHandler(new StreamHandler(LOGFILE));
 
 $log->debug($json);
 
+echo json_encode($_SERVER, JSON_PRETTY_PRINT);
 //
 //// check if pushed branch matches branch specified in config
 //if ($json["ref"] === BRANCH) {
