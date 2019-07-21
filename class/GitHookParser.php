@@ -34,6 +34,11 @@ class GitHookParser {
     return $this->eventName == "pull_request";
   }
 
+  public function getEventName()
+  {
+    return $this->eventName;
+  }
+
   /**
    * @return PullRequest
    */
