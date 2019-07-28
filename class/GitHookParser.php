@@ -16,7 +16,7 @@ class GitHookParser {
     $this->rawContent = file_get_contents("php://input");
     $this->rawData = json_decode($this->rawContent, true);
 
-    if ($this->isEventPullRequest()) {
+    if ($this->eventName == Event::PULL_REQUEST) {
       $this->pullRequest = new PullRequest(
         $this->rawData['number'],
         $this->rawData['pull_request']['user']['login'],
@@ -27,11 +27,18 @@ class GitHookParser {
         $this->rawData['pull_request']['base']['ref'],
         $this->rawData['pull_request']['head']['repo']['name']
       );
+    } else if ($this->eventName == Event::PUSH) {
+      $this->pullRequest = new PullRequest(
+        null,
+        $this->rawData['head_commit']['author']['username'],
+        $this->rawData['head_commit']['message'],
+        null,
+        null,
+        null,
+        $this->rawData['ref'],
+        $this->rawData['repository']['name']
+      );
     }
-  }
-
-  function isEventPullRequest() {
-    return $this->eventName == "pull_request";
   }
 
   public function getEventName()
