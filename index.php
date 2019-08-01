@@ -3,19 +3,26 @@ require_once "vendor/autoload.php";
 
 use GitHookPhpListener\Event;
 use GitHookPhpListener\GitHookParser;
+use GitHookPhpListener\GithubAPI;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
-define("DIR", "/var/www/html/%s");                                               // The path to your repostiroy; this must begin with a forward slash (/)
-define("BRANCH", "master");                                                      // The branch route
-define("LOGFILE", "deploy.log");                                                 // The name of the file you want to log to.
-define("GIT", "/usr/bin/git");                                                   // The path to the git executable
-define("BEFORE_PULL", "");                                                       // A command to execute before pulling
-define("AFTER_PULL", "");                                                        // A command to execute after successfully pulling
-
 header("Content-Type: application/json");
 date_default_timezone_set("Asia/Jakarta");
+
+// CONFIGURATION
+define("GITHUB_TOKEN", "ca94a20387eb8100f01b3d4b69bee0c7e1306871");              // The github personal access token
+define("GITHUB_OWNER", "farizhermawan");                                         // The owner github repo
+
+define("DEFAULT_DIR", "/var/www/html/%s");                                       // The path to your repostiroy; this must begin with a forward slash (/)
+define("DEFAULT_BRANCH", "master");                                              // The branch route
+
+define("LOGFILE", "deploy.log");                                                 // The name of the file you want to log to.
+define("GIT", "/usr/bin/git");                                                   // The path to the git executable
+
+define("BEFORE_PULL", "");                                                       // A command to execute before pulling
+define("AFTER_PULL", "");                                                        // A command to execute after successfully pulling
 
 // create a log channel
 $log = new Logger('listener');
@@ -24,9 +31,8 @@ $streamHandler->setFormatter(new LineFormatter(null, null, false, true));
 
 $log->pushHandler($streamHandler);
 
-$DIR = preg_match("/\/$/", DIR) ? DIR : DIR . "/";
-
 $gitHook = new GitHookParser();
+$githubAPI = new GithubAPI(GITHUB_TOKEN, GITHUB_OWNER);
 
 $log->info("Got request: " . $gitHook->getEventName());
 
@@ -47,8 +53,23 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
 
   if ($deploy) {
-    if ($pullRequest->getBaseBranch() != BRANCH) {
-      $errMsg = 'Branch detected is not ' . BRANCH . ', request ignored';
+    $deployConfig = [
+      'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()),
+      'BRANCH' => DEFAULT_BRANCH,
+      'BEFORE_PULL' => BEFORE_PULL,
+      'AFTER_PULL' => AFTER_PULL,
+    ];
+
+    $githubAPI->setRepo($pullRequest->getRepository());
+    $rawConfig = $githubAPI->getRawContent("deploy.conf", $pullRequest->getBaseBranch());
+    if ($rawConfig) {
+      $deployConfig = array_merge($deployConfig, json_decode($rawConfig));
+    }
+
+    $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
+
+    if ($pullRequest->getBaseBranch() != $deployConfig['BRANCH']) {
+      $errMsg = 'Branch detected is not ' . $deployConfig['BRANCH'] . ', request ignored';
       $log->err($errMsg);
       echo json_encode(['message' => $errMsg, 'request' => $pullRequest]);
       exit();
@@ -69,10 +90,10 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
 
     // perform before pulling action
-    if (!empty(BEFORE_PULL)) {
+    if (!empty($deployConfig['BEFORE_PULL'])) {
       // execute the command, returning the output and exit code
-      $log->info("Perform " . BEFORE_PULL);
-      exec(BEFORE_PULL . " 2>&1", $output, $exit);
+      $log->info("Perform " . $deployConfig['BEFORE_PULL']);
+      exec($deployConfig['BEFORE_PULL'] . " 2>&1", $output, $exit);
       $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
     }
 
@@ -82,10 +103,10 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
 
     // perform after pulling action
-    if (!empty(AFTER_PULL)) {
+    if (!empty($deployConfig['AFTER_PULL'])) {
       // execute the command, returning the output and exit code
-      $log->info("Perform " . AFTER_PULL);
-      exec(AFTER_PULL . " 2>&1", $output, $exit);
+      $log->info("Perform " . $deployConfig['AFTER_PULL']);
+      exec($deployConfig['AFTER_PULL'] . " 2>&1", $output, $exit);
       $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
     }
 
