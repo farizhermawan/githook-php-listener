@@ -35,7 +35,7 @@ class GitHookParser {
         null,
         null,
         null,
-        $this->rawData['ref'],
+        str_replace("refs/heads/", "", $this->rawData['ref']),
         $this->rawData['repository']['name']
       );
     }
