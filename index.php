@@ -62,9 +62,12 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
     $githubAPI->setRepo($pullRequest->getRepository());
     $rawConfig = $githubAPI->getRawContent("deploy.conf", $pullRequest->getBaseBranch());
+    $log->info("Custom Config: " . $rawConfig);
+
     if ($rawConfig) {
       $deployConfig = array_merge($deployConfig, json_decode($rawConfig));
     }
+    $log->info("Final Config: " . json_encode($deployConfig));
 
     $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
 
