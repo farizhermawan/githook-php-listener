@@ -12,7 +12,7 @@ header("Content-Type: application/json");
 date_default_timezone_set("Asia/Jakarta");
 
 // CONFIGURATION
-define("GITHUB_TOKEN", "ca94a20387eb8100f01b3d4b69bee0c7e1306871");              // The github personal access token
+define("GITHUB_TOKEN", "23391d085c1889d8d2ededb5912d29abb37b40a7");              // The github personal access token
 define("GITHUB_OWNER", "farizhermawan");                                         // The owner github repo
 
 define("DEFAULT_DIR", "/var/www/html/%s");                                       // The path to your repostiroy; this must begin with a forward slash (/)

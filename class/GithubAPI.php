@@ -32,6 +32,6 @@ class GithubAPI {
     if (!$this->owner || !$this->repo) return false;
     $this->curl->setHeader("Accept", "application/vnd.github.VERSION.raw");
     $response = $this->curl->get("https://api.github.com/repos/{$this->owner}/{$this->repo}/contents/{$path}?ref={$ref}");
-    return $response->getHttpStatus() == 404 ? false : $response->getResponse();
+    return $response->getHttpStatus() != 200 ? false : $response->getResponse();
   }
 }
