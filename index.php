@@ -11,9 +11,6 @@ header("Content-Type: application/json");
 date_default_timezone_set("Asia/Jakarta");
 
 // CONFIGURATION
-//define("GITHUB_TOKEN", "23391d085c1889d8d2ededb5912d29abb37b40a7");              // The github personal access token
-//define("GITHUB_OWNER", "farizhermawan");                                         // The owner github repo
-
 define("DEFAULT_DIR", "/var/www/html/%s");                                       // The path to your repostiroy; this must begin with a forward slash (/)
 define("DEFAULT_BRANCH", "master");                                              // The branch route
 
@@ -31,7 +28,6 @@ $streamHandler->setFormatter(new LineFormatter(null, null, false, true));
 $log->pushHandler($streamHandler);
 
 $gitHook = new GitHookParser();
-//$githubAPI = new GithubAPI(GITHUB_TOKEN, GITHUB_OWNER);
 
 $log->info("Got request: " . $gitHook->getEventName());
 
@@ -59,13 +55,6 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
       'AFTER_PULL' => AFTER_PULL,
     ];
 
-//    $githubAPI->setRepo($pullRequest->getRepository());
-//    $rawConfig = $githubAPI->getRawContent("deploy.conf", $pullRequest->getBaseBranch());
-//    $log->info("Custom Config: " . $rawConfig);
-//
-//    if ($rawConfig) {
-//      $deployConfig = array_merge($deployConfig, json_decode($rawConfig));
-//    }
     $log->info("Config: " . json_encode($deployConfig));
 
     $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
