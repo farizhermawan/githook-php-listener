@@ -93,6 +93,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
       $log->info("Perform " . $deployConfig['BEFORE_PULL']);
       $cmdToRuns = explode(" && ", $deployConfig['BEFORE_PULL']);
       foreach ($cmdToRuns as $cmd) {
+        $output = "";
         exec($cmd . " 2>&1", $output, $exit);
         $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
       }
@@ -109,6 +110,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
       $log->info("Perform " . $deployConfig['AFTER_PULL']);
       $cmdToRuns = explode(" && ", $deployConfig['AFTER_PULL']);
       foreach ($cmdToRuns as $cmd) {
+        $output = "";
         exec($cmd . " 2>&1", $output, $exit);
         $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
       }
