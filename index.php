@@ -60,6 +60,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
     if (file_exists($configFile)) {
       $overrideConfig = parse_ini_file($configFile);
+      $log->info("Found config file: " . json_encode($overrideConfig));
       if ($overrideConfig) array_merge($deployConfig, $overrideConfig);
     }
     $log->info("Config: " . json_encode($deployConfig));
