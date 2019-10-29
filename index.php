@@ -11,14 +11,14 @@ header("Content-Type: application/json");
 date_default_timezone_set("Asia/Jakarta");
 
 // CONFIGURATION
-define("DEFAULT_DIR", "/var/www/html/%s");                                       // The path to your repostiroy; this must begin with a forward slash (/)
-define("DEFAULT_BRANCH", "master");                                              // The branch route
+define("DEFAULT_DIR", "/var/www/html/%s");   // The path to your repostiroy; this must begin with a forward slash (/)
+define("DEFAULT_BRANCH", "master");          // The branch route
 
-define("LOGFILE", "deploy.log");                                                 // The name of the file you want to log to.
-define("GIT", "/usr/bin/git");                                                   // The path to the git executable
+define("LOGFILE", "deploy.log");             // The name of the file you want to log to.
+define("GIT", "/usr/bin/git");               // The path to the git executable
 
-define("BEFORE_PULL", "");                                                       // A command to execute before pulling
-define("AFTER_PULL", "");                                                        // A command to execute after successfully pulling
+define("BEFORE_PULL", "");                   // A command to execute before pulling
+define("AFTER_PULL", "");                    // A command to execute after successfully pulling
 
 // create a log channel
 $log = new Logger('listener');
@@ -55,9 +55,15 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
       'AFTER_PULL' => AFTER_PULL,
     ];
 
+    $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
+
+    $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
+    if (file_exists($configFile)) {
+      $overrideConfig = parse_ini_file($configFile);
+      if ($overrideConfig) array_merge($deployConfig, $overrideConfig);
+    }
     $log->info("Config: " . json_encode($deployConfig));
 
-    $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
 
     if ($pullRequest->getBaseBranch() != $deployConfig['BRANCH']) {
       $errMsg = 'Branch detected is not ' . $deployConfig['BRANCH'] . ', request ignored';
