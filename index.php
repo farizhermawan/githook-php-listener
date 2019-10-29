@@ -91,8 +91,11 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     if (!empty($deployConfig['BEFORE_PULL'])) {
       // execute the command, returning the output and exit code
       $log->info("Perform " . $deployConfig['BEFORE_PULL']);
-      exec($deployConfig['BEFORE_PULL'] . " 2>&1", $output, $exit);
-      $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
+      $cmdToRuns = explode(" && ", $deployConfig['BEFORE_PULL']);
+      foreach ($cmdToRuns as $cmd) {
+        exec($cmd . " 2>&1", $output, $exit);
+        $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
+      }
     }
 
     // perform git pull
@@ -104,8 +107,11 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     if (!empty($deployConfig['AFTER_PULL'])) {
       // execute the command, returning the output and exit code
       $log->info("Perform " . $deployConfig['AFTER_PULL']);
-      exec($deployConfig['AFTER_PULL'] . " 2>&1", $output, $exit);
-      $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
+      $cmdToRuns = explode(" && ", $deployConfig['AFTER_PULL']);
+      foreach ($cmdToRuns as $cmd) {
+        exec($cmd . " 2>&1", $output, $exit);
+        $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
+      }
     }
 
     $msg = $pullRequest->getRepository() . ' has been successfully deployed';
