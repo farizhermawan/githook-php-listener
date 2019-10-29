@@ -29,23 +29,11 @@ $log->pushHandler($streamHandler);
 
 $gitHook = new GitHookParser();
 
-$log->info("Got request: " . $gitHook->getEventName());
-
 if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() == Event::PUSH) {
   $pullRequest = $gitHook->getPullRequest();
-  $log->info("Parsing Request: " . json_encode($pullRequest));
+  $log->info("Got Request: " . json_encode($pullRequest));
 
-  $deploy = false;
-  if ($gitHook->getEventName() == Event::PULL_REQUEST) {
-    if ($pullRequest->getStatus() == "opened") {
-
-    } else if ($pullRequest->getStatus() == "closed") {
-      $deploy = true;
-    }
-  } else if ($gitHook->getEventName() == Event::PUSH) {
-    $deploy = true;
-  }
-
+  $deploy = $gitHook->getEventName() == Event::PUSH || ($gitHook->getEventName() == Event::PULL_REQUEST && $pullRequest->getStatus() == "closed");
 
   if ($deploy) {
     $deployConfig = [
@@ -123,6 +111,6 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
   }
 }
 
-$errMsg = 'Unkown error, request ignored';
+$errMsg = 'Ignored';
 $log->err($errMsg);
 echo json_encode(['message' => $errMsg]);
