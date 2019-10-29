@@ -63,6 +63,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
     // get home directory
     $log->info("Get home directory");
+    $output = "";
     exec("echo ~", $output, $exit);
     $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
 
@@ -72,6 +73,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
     // reset git head in remote repository
     $log->info("Perform git reset");
+    $output = "";
     exec(GIT . " reset --hard HEAD 2>&1", $output, $exit);
     $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
 
@@ -89,6 +91,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
     // perform git pull
     $log->info("Perform git pull");
+    $output = "";
     exec(GIT . " pull 2>&1", $output, $exit);
     $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
 
