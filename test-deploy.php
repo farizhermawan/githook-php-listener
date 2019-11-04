@@ -3,33 +3,29 @@ ob_end_flush();
 ob_implicit_flush();
 
 $project = $_GET['project'];
+$start = time();
 
 echo "<pre>";
 if (!$project) echo "Missing required parameter `project` (e.g: riska-data-be)";
 
-echo "cd {$project}\n";
+echo "~ cd {$project}\n\n";
 chdir("/var/www/html/{$project}");
 
-$cmd = substr($project, -2, 2) == "fe"
+$cmd_after_pull = substr($project, -2, 2) == "fe"
   ? "npm install && bower install"
   : "composer install";
 
-$output = [];
-$cmd_git_reset = "git reset --hard HEAD 2>&1";
-echo $cmd_git_reset . "\n";
-exec($cmd_git_reset, $output, $exit);
-echo implode("\n", $output);
+$cmds = ['git reset --hard HEAD', 'git pull'];
+foreach (explode(" && ", $cmd_after_pull) as $cmd) $cmds[] = $cmd;
 
-$output = [];
-$cmd_git_pull = "git pull 2>&1";
-echo $cmd_git_pull . "\n";
-exec($cmd_git_pull, $output, $exit);
-echo implode("\n", $output);
+foreach ($cmds as $cmd) {
+  $output = [];
+  echo "~ " . $cmd . "\n";
+  exec($cmd . " 2>&1", $output, $exit);
+  echo implode("\n", $output);
+  echo "\n\n";
+}
 
-$output = [];
-$cmd_after_pull = "{$cmd} 2>&1";
-echo $cmd_after_pull . "\n";
-exec($cmd_after_pull, $output, $exit);
-echo implode("\n", $output);
+$end = time();
 
-echo "finish.";
+echo "finish in " . ($end - $start) . "ms";
