@@ -12,7 +12,7 @@ if (PHP_SAPI === 'cli') {
 
 if (!$project) echo "Missing required parameter `project` (e.g: riska-data-be)";
 
-echo "~ cd {$project}\n\n";
+echo "~ cd {$project}\n";
 chdir("../{$project}");
 
 $cmd_after_pull = substr($project, -2, 2) == "fe"
