@@ -17,7 +17,7 @@ chdir("../{$project}");
 
 $cmd_after_pull = substr($project, -2, 2) == "fe"
   ? "npm install && bower install"
-  : "composer install && php artisan migrate --force";
+  : "composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist && php artisan migrate --force";
 
 $cmds = ['git reset --hard HEAD', 'git pull'];
 foreach (explode(" && ", $cmd_after_pull) as $cmd) $cmds[] = $cmd;
