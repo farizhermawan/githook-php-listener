@@ -68,6 +68,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     echo "~ " . $cmd . "\n";
 
     if (stristr($cmd, "composer install")) $cmd = "export HOME=" . DEFAULT_HOME . " && " . $cmd;
+    if (stristr($cmd, "bower install")) $cmd = "export HOME=" . DEFAULT_HOME . " && " . $cmd;
 
     if( ($fp = popen($cmd . " 2>&1", "r")) ) {
       while( !feof($fp) ){
