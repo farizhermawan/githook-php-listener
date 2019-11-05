@@ -3,117 +3,83 @@ require_once "vendor/autoload.php";
 
 use GitHookPhpListener\Event;
 use GitHookPhpListener\GitHookParser;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
-
-header("Content-Type: application/json");
-date_default_timezone_set("Asia/Jakarta");
 
 // CONFIGURATION
+define("DEFAULT_HOME", "/var/www");          // The path to your repostiroy; this must begin with a forward slash (/)
 define("DEFAULT_DIR", "/var/www/html/%s");   // The path to your repostiroy; this must begin with a forward slash (/)
-define("DEFAULT_BRANCH", "master");          // The branch route
+define("DEFAULT_BRANCH", "master");          // The base branch
 
-define("LOGFILE", "deploy.log");             // The name of the file you want to log to.
 define("GIT", "/usr/bin/git");               // The path to the git executable
 
 define("BEFORE_PULL", "");                   // A command to execute before pulling
 define("AFTER_PULL", "");                    // A command to execute after successfully pulling
 
-// create a log channel
-$log = new Logger('listener');
-$streamHandler = new StreamHandler(LOGFILE);
-$streamHandler->setFormatter(new LineFormatter(null, null, false, true));
+ob_end_flush();
+ob_implicit_flush();
 
-$log->pushHandler($streamHandler);
-
+$start = time();
 $gitHook = new GitHookParser();
 
 if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() == Event::PUSH) {
   $pullRequest = $gitHook->getPullRequest();
-  $log->info("Got Request: " . json_encode($pullRequest));
+  echo "Got Request: " . json_encode($pullRequest) . "\n";
 
   $deploy = $gitHook->getEventName() == Event::PUSH || ($gitHook->getEventName() == Event::PULL_REQUEST && $pullRequest->getStatus() == "closed");
-
-  if ($deploy) {
-    $deployConfig = [
-      'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()),
-      'BRANCH' => DEFAULT_BRANCH,
-      'BEFORE_PULL' => BEFORE_PULL,
-      'AFTER_PULL' => AFTER_PULL,
-    ];
-
-    $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
-
-    $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
-    if (file_exists($configFile)) {
-      $overrideConfig = parse_ini_file($configFile);
-      $log->info("Found config file: " . json_encode($overrideConfig));
-      if ($overrideConfig) $deployConfig = array_merge($deployConfig, $overrideConfig);
-    }
-    $log->info("Config: " . json_encode($deployConfig));
-
-
-    if ($pullRequest->getBaseBranch() != $deployConfig['BRANCH']) {
-      $errMsg = 'Branch detected is not ' . $deployConfig['BRANCH'] . ', request ignored';
-      $log->err($errMsg);
-      echo json_encode(['message' => $errMsg, 'request' => $pullRequest]);
-      exit();
-    }
-
-    // get home directory
-    $log->info("Get home directory");
-    $output = "";
-    exec("echo ~", $output, $exit);
-    $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
-
-    // change directory to the repository
-    $log->info("Change directory to " . sprintf($DIR, $pullRequest->getRepository()));
-    chdir(sprintf($DIR, $pullRequest->getRepository()));
-
-    // reset git head in remote repository
-    $log->info("Perform git reset");
-    $output = "";
-    exec(GIT . " reset --hard HEAD 2>&1", $output, $exit);
-    $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
-
-    // perform before pulling action
-    if (!empty($deployConfig['BEFORE_PULL'])) {
-      // execute the command, returning the output and exit code
-      $cmdToRuns = explode(" && ", $deployConfig['BEFORE_PULL']);
-      foreach ($cmdToRuns as $cmd) {
-        $log->info("Perform " . $cmd);
-        $output = "";
-        exec($cmd . " 2>&1", $output, $exit);
-        $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
-      }
-    }
-
-    // perform git pull
-    $log->info("Perform git pull");
-    $output = "";
-    exec(GIT . " pull 2>&1", $output, $exit);
-    $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
-
-    // perform after pulling action
-    if (!empty($deployConfig['AFTER_PULL'])) {
-      // execute the command, returning the output and exit code
-      $cmdToRuns = explode(" && ", $deployConfig['AFTER_PULL']);
-      foreach ($cmdToRuns as $cmd) {
-        $log->info("Perform " . $cmd);
-        $output = "";
-        exec($cmd . " 2>&1", $output, $exit);
-        $log->debug((!empty($output) ? implode("\n", $output) : "[no output]"));
-      }
-    }
-
-    $msg = $pullRequest->getRepository() . ' has been successfully deployed';
-    $log->info($msg);
-    echo json_encode(['message' => $msg, 'request' => $pullRequest]);
+  if (!$deploy) {
+    echo "No need to deploy, ignored.";
     exit();
   }
+
+  $deployConfig = [
+    'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()),
+    'BRANCH' => DEFAULT_BRANCH,
+    'BEFORE_PULL' => BEFORE_PULL,
+    'AFTER_PULL' => AFTER_PULL,
+  ];
+
+  $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
+
+  $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
+  if (file_exists($configFile)) {
+    echo "Read config from deploy.conf\n";
+    $overrideConfig = parse_ini_file($configFile);
+    if ($overrideConfig) $deployConfig = array_merge($deployConfig, $overrideConfig);
+  }
+  echo "Config: " . json_encode($deployConfig) . "\n";
+
+
+  if ($pullRequest->getBaseBranch() != $deployConfig['BRANCH']) {
+    echo 'Branch detected is not ' . $deployConfig['BRANCH'] . ', request ignored\n';
+    exit();
+  }
+
+  // change directory to the repository
+  echo "Change directory to " . sprintf($DIR, $pullRequest->getRepository()) . "\n";
+  chdir(sprintf($DIR, $pullRequest->getRepository()));
+
+  $cmds = [];
+  foreach (explode(" && ", $deployConfig['BEFORE_PULL']) as $cmd) $cmds[] = $cmd;
+  $cmds[] = 'git reset --hard HEAD';
+  $cmds[] = 'git pull';
+  foreach (explode(" && ", $deployConfig['AFTER_PULL']) as $cmd) $cmds[] = $cmd;
+
+  foreach ($cmds as $cmd) {
+    echo "~ " . $cmd . "\n";
+
+    if (stristr($cmd, "composer install")) $cmd = "export HOME=" . DEFAULT_HOME . " && " . $cmd;
+
+    if( ($fp = popen($cmd . " 2>&1", "r")) ) {
+      while( !feof($fp) ){
+        echo fread($fp, 1024);
+        flush();
+      }
+      fclose($fp);
+    }
+  }
+
+  echo "finished in " . (time() - $start) . "s\n";
+  exit();
 }
 
-$errMsg = 'Ignored';
-$log->err($errMsg);
-echo json_encode(['message' => $errMsg]);
+echo "Unknown event ({$gitHook->getEventName()}), ignored\n";
+exit();
