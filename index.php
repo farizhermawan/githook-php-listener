@@ -64,6 +64,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
   foreach (explode(" && ", $deployConfig['AFTER_PULL']) as $cmd) $cmds[] = $cmd;
 
   foreach ($cmds as $cmd) {
+    if (empty($cmd)) continue;
     echo "~ " . $cmd . "\n";
 
     if (stristr($cmd, "composer install")) $cmd = "export HOME=" . DEFAULT_HOME . " && " . $cmd;
