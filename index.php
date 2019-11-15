@@ -17,9 +17,6 @@ define("AFTER_PULL", "");                    // A command to execute after succe
 $start = time();
 $gitHook = new GitHookParser();
 
-$input = file_get_contents("php://input");
-die($input);
-
 ob_end_flush();
 ob_implicit_flush();
 
