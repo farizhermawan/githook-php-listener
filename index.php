@@ -14,11 +14,14 @@ define("GIT", "/usr/bin/git");               // The path to the git executable
 define("BEFORE_PULL", "");                   // A command to execute before pulling
 define("AFTER_PULL", "");                    // A command to execute after successfully pulling
 
-ob_end_flush();
-ob_implicit_flush();
-
 $start = time();
 $gitHook = new GitHookParser();
+
+$input = file_get_contents("php://input");
+die($input);
+
+ob_end_flush();
+ob_implicit_flush();
 
 if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() == Event::PUSH) {
   $pullRequest = $gitHook->getPullRequest();
