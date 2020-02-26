@@ -40,8 +40,9 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
   $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
 
   $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
+  if (!file_exists($configFile)) $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.config";
   if (file_exists($configFile)) {
-    echo "Read config from deploy.conf\n";
+    echo "Read config file\n";
     $overrideConfig = parse_ini_file($configFile);
     if ($overrideConfig) $deployConfig = array_merge($deployConfig, $overrideConfig);
   }
