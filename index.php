@@ -60,8 +60,8 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
   $cmds = [];
   foreach (explode(" && ", $deployConfig['BEFORE_PULL']) as $cmd) $cmds[] = $cmd;
-  $cmds[] = 'git reset --hard HEAD';
-  $cmds[] = 'git pull';
+  $cmds[] = 'git fetch';
+  $cmds[] = 'git reset --hard origin/' . $deployConfig['BRANCH'];
   foreach (explode(" && ", $deployConfig['AFTER_PULL']) as $cmd) $cmds[] = $cmd;
 
   foreach ($cmds as $cmd) {
