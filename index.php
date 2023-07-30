@@ -32,7 +32,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
   $deployConfig = [
     'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()) . ($pullRequest->getBaseBranch() == "preview" ? "-preview" : ""),
-    'BRANCH' => DEFAULT_BRANCH,
+    'BRANCH' => $pullRequest->getBaseBranch() == "preview" ? "preview" : DEFAULT_BRANCH,
     'BEFORE_PULL' => BEFORE_PULL,
     'AFTER_PULL' => AFTER_PULL,
   ];
@@ -46,11 +46,8 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
     $overrideConfig = parse_ini_file($configFile);
     if ($overrideConfig) $deployConfig = array_merge($deployConfig, $overrideConfig);
   }
-  if ($pullRequest->getBaseBranch() == "preview") {
-    $deployConfig['BRANCH'] = "preview"
-  }
+ 
   echo "Config: " . json_encode($deployConfig) . "\n";
-
 
   if ($pullRequest->getBaseBranch() != $deployConfig['BRANCH']) {
     echo 'Branch detected is not ' . $deployConfig['BRANCH'] . ', request ignored\n';
