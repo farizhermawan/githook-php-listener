@@ -29,11 +29,11 @@ class GitHookParser {
       );
     } else if ($this->eventName == Event::PUSH) {
       $this->pullRequest = new PullRequest(
-        null,
+        $this->rawData['head_commit']['id'],
         $this->rawData['head_commit']['author']['username'],
         $this->rawData['head_commit']['message'],
-        null,
-        null,
+        "PUSH",
+        $this->rawData['head_commit']['url'],
         null,
         str_replace("refs/heads/", "", $this->rawData['ref']),
         $this->rawData['repository']['name']

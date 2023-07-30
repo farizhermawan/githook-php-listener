@@ -31,7 +31,7 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
   }
 
   $deployConfig = [
-    'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()),
+    'DIR' => sprintf(DEFAULT_DIR, $pullRequest->getRepository()) . ($pullRequest->getBaseBranch() == "preview" ? "-preview" : ""),
     'BRANCH' => DEFAULT_BRANCH,
     'BEFORE_PULL' => BEFORE_PULL,
     'AFTER_PULL' => AFTER_PULL,
