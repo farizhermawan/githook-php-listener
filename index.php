@@ -39,12 +39,15 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
 
   $DIR = preg_match("/\/$/", $deployConfig['DIR']) ? $deployConfig['DIR'] : $deployConfig['DIR'] . "/";
 
-  $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.conf";
-  if (!file_exists($configFile)) $configFile = sprintf($DIR, $pullRequest->getRepository()) . "/deploy.config";
+  $configFile = $DIR . "/deploy.conf";
+  if (!file_exists($configFile)) $configFile = $DIR . "/deploy.config";
   if (file_exists($configFile)) {
     echo "Read config file\n";
     $overrideConfig = parse_ini_file($configFile);
     if ($overrideConfig) $deployConfig = array_merge($deployConfig, $overrideConfig);
+  }
+  if ($pullRequest->getBaseBranch() == "preview") {
+    $deployConfig['BRANCH'] = "preview"
   }
   echo "Config: " . json_encode($deployConfig) . "\n";
 
@@ -55,8 +58,8 @@ if ($gitHook->getEventName() == Event::PULL_REQUEST || $gitHook->getEventName() 
   }
 
   // change directory to the repository
-  echo "Change directory to " . sprintf($DIR, $pullRequest->getRepository()) . "\n";
-  chdir(sprintf($DIR, $pullRequest->getRepository()));
+  echo "Change directory to " . $DIR . "\n";
+  chdir($DIR);
 
   $cmds = [];
   foreach (explode(" && ", $deployConfig['BEFORE_PULL']) as $cmd) $cmds[] = $cmd;
